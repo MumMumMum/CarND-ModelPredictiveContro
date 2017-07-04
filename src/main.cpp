@@ -89,10 +89,21 @@ int main() {
                     // j[1] is the data JSON object
                     vector<double> ptsx = j[1]["ptsx"];
                     vector<double> ptsy = j[1]["ptsy"];
-                    double px = j[1]["x"];
-                    double py = j[1]["y"];
+                    double x = j[1]["x"];
+                    double y = j[1]["y"];
                     double psi = j[1]["psi"];
                     double v = j[1]["speed"];
+		    double delta = j[1]["steering_angle"];
+		    double acceleration = j[1]["throttle"];
+
+
+		    const double Lf = 2.67;
+		    // predict state in 100ms
+		    double latency = 0.1; 
+		    x = x + v*cos(psi)*latency;
+		    y = y + v*sin(psi)*latency;
+		    psi = psi + v*delta/Lf*latency;
+		    v = v + acceleration*latency;
 
                     /*
                     * TODO: Calculate steering angle and throttle using MPC.
@@ -107,8 +118,8 @@ int main() {
                     // this means we can consider px = 0, py = 0, and psi = 0
                     // greatly simplifying future calculations
                     for (int i = 0; i < ptsx.size(); i++) {
-                        double dx = ptsx[i] - px;
-                        double dy = ptsy[i] - py;
+                        double dx = ptsx[i] - x;
+                        double dy = ptsy[i] - y;
                         waypts_x.push_back(dx * cos(-psi) - dy * sin(-psi));
                         waypts_y.push_back(dx * sin(-psi) + dy * cos(-psi));
                     }
