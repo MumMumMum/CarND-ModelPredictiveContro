@@ -99,11 +99,11 @@ int main() {
 
 		    const double Lf = 2.67;
 		    // predict state in 100ms
-		    double latency = 0.1; 
+		    /*double latency = 0.1; 
 		    x = x + v*cos(psi)*latency;
 		    y = y + v*sin(psi)*latency;
 		    psi = psi + v*delta/Lf*latency;
-		    v = v + acceleration*latency;
+		    v = v + acceleration*latency;*/
 
                     /*
                     * TODO: Calculate steering angle and throttle using MPC.
