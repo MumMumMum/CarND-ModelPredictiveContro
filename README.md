@@ -19,15 +19,17 @@ The project use a simple bicycle model.
      >// psi_[t] = psi[t-1] + v[t-1] / Lf * delta[t-1] * dt
      >// v_[t] = v[t-1] + a[t-1] * dt
 Where x,y is position. Psi is heading Direction. V is velocity.
+     
+     
      >// cte[t] = f(x[t-1]) - y[t-1] + v[t-1] * sin(epsi[t-1]) * dt
      >// epsi[t] = psi[t] - psides[t-1] + v[t-1] * delta[t-1] / Lf * dt
 cte is cross track error which we need to minimize. Finally the epsi is error in heading direction which all need to be minimzed hence applied as input to the model.
 
 Model Predictive Control flow.
 To establish a better control, we need good prediction.
-Here we have IPopt oprimizer in our hand. The optimizer takes States, Sonstarints, Controls as input to the model.
+Here we have IPopt oprimizer in our hand. The optimizer takes States, Constarints, Controls as input to the model.
 So when Simulator sends the currents postion X,Y and waypoints.
-These waypoints define a polynominal as the model is non linear . We use 3rd order eqaution to fit the waypoints.
+These waypoints define a polynominal. As the model is non linear,We use 3rd order eqaution to fit the waypoints.
 Polyfit and Polyeval function are used accordingly.
 
 >auto coeffs = polyfit(wp_x, wp_y, 3);
@@ -85,15 +87,15 @@ When I use latency_index < 7 system ocillates.
 My N is 10 and dt is 0.05.
 so T is 0.5 sec the time frame for prediction.
 That means we predict for dist of only 0.5 sec ahead of us.
-And in that we have 10 prediction points.
+And in that we have 10 prediction points. and At every Iteration the solver tries to reach the cte and epsi = 0 .
 
-Also 7*0.05 = .35 we are using controls much within the frame and at 0.35 sec of time.
-Might be this much greater than latency of 100 but my simulator is in windows and application in VM so I think this delay is due to computational system delay.
+Also check that 7*0.05 = .35 we are using predicted controls much within the frame(0.5 ).
+At 0.35 sec of time, Might be this much greater than latency of 100 but my simulator is in windows and application in VM so I think this delay is due to computational system delay.
 
 I have set refrence speed of 90mph, It passes the test even at 100.
 
 It was indeed beautiful journey Implemneting this project.
-I had no idea of WHat MPC was and only to write this document I saw so many journals I got more inisght in technicality of why we did so many things in MPC. 
+I had no idea of What MPC was and only to write this document I saw so many journals I got more inisght in technicality of why we did so many things in MPC. 
 
 Thank you all for everything!!!
 
