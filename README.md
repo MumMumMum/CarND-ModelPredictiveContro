@@ -1,8 +1,19 @@
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
 
-This project write up for Model Predictive is still under constuction.
-I will just write about steps which I used so far to arrive at this solution.
+Let start with Model Predictive Control.
+Predictive control involves Prediction of controls for the next state based on current state.
+Here we predict for a fixed duration of time frame(T = N*dt) and take the output solution(control) and Apply to the systemto generate New state.
+The Prediction is mathematical solution provided by an OPtimizer(IPopt optimizer in our case).
+This length of T is very crucial and is hyper parameter for the model.This T should be generally speaking gretter than setlling time of the system for model to predict well.As in every system has latency time to come to steady state after the controls  are being applied. So design of this T should be larger then setlling time but not large so that the computation time increase and you miss the prediction for new states and accuracy falls. Its a trade off and you will get a hang of it will tuning the system.
+
+
+At every T time step we measure our output and assess new state(x,y,psi,v,CTE,EPSI) so we geat a measure of direction of our prediction and we apply this new state to our model to generate new controls . So our measuremnts act like feedback to system.
+And keep T optimum ensure that system will not overshoot or get unstable.
+
+We need  Mathematical  Model whichapproximates the system.The model should have states, Constraints,  and control.
+Then from this New state once again predict for next fixed frame of time. This is called receeding Horizon 
+in model prediction control.
 
 I started with MPC quiz, There the mpc tuning graph and the quiz soultion was of great help.
 Lot of steps from quiz were taken into project.Only main.cpp was not there in quiz.
