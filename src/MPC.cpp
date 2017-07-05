@@ -6,8 +6,8 @@
 using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 20;
-double dt = 0.1;
+const size_t N = 10;
+const double dt = 0.05;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -20,7 +20,8 @@ double dt = 0.1;
 //
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
-double ref_v = 10;
+double ref_v = 100;
+const int latency_index = 7;
 
 
 // The solver takes all the state variables and actuator
@@ -49,30 +50,28 @@ public:
         // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
         // NOTE: You'll probably go back and forth between this function and
         // the Solver function below.
-
         fg[0] = 0;
         // The part of the cost based on the reference state.
         for (int t = 0; t < N; t++) {
-            fg[0] += 2000*CppAD::pow(vars[cte_start + t],2 );
-            fg[0] += 1000*CppAD::pow(vars[epsi_start + t], 2);
+            fg[0] += 1000*CppAD::pow(vars[cte_start + t],2 );
+            fg[0] += 500*CppAD::pow(vars[epsi_start + t], 2);
             fg[0] += 5*CppAD::pow(vars[v_start + t] - ref_v, 2);
         }
         // Minimize the use of actuators.
         for (int t = 0; t < N - 1; t++) {
-            fg[0] += 2000*CppAD::pow(vars[delta_start + t], 2);
+            fg[0] +=1000*CppAD::pow(vars[delta_start + t], 2);
             fg[0] += 200*CppAD::pow(vars[a_start + t], 2);
 		//inverse relation cte and acc
-	    fg[0] += 200*CppAD::pow(vars[cte_start + t] /(vars[a_start + t]+1), 2);
+	    //fg[0] += 200*CppAD::pow(vars[cte_start + t] /(vars[a_start + t]+1), 2);
         }
 
         // Minimize the value gap between sequential actuations.
         for (int t = 0; t < N - 2; t++) {
-            fg[0] += 300*CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-            fg[0] += (CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2))*300;
+            fg[0] += 3*CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+            fg[0] += (CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2))*1;
 		// reduce gap between  seq cte
-	    fg[0] += 10*CppAD::pow(vars[cte_start + t + 1] - vars[cte_start + t],2 );
+	    //fg[0] += 10*CppAD::pow(vars[cte_start + t + 1] - vars[cte_start + t],2 );
         }
-
 
         //
         // Setup Constraints
@@ -203,8 +202,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     // degrees (values in radians).
     // NOTE: Feel free to change this to something else.
     for (int i = delta_start; i < a_start; i++) {
-        vars_lowerbound[i] = -0.436332*Lf;
-        vars_upperbound[i] = 0.436332*Lf;
+        vars_lowerbound[i] = -0.436332;
+        vars_upperbound[i] = 0.436332;
     }
 
 
@@ -286,8 +285,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
             solution.x[delta_start],   solution.x[a_start]};};*/
     vector<double> result;
 
-    result.push_back(solution.x[delta_start+9]);
-    result.push_back(solution.x[a_start+9]);
+    result.push_back(solution.x[delta_start+latency_index]);
+    result.push_back(solution.x[a_start+latency_index]);
 
     for (int i = 0; i < N-1; i++) {
     result.push_back(solution.x[x_start + i + 1]);
