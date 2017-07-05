@@ -8,7 +8,7 @@ The Prediction is mathematical solution provided by an OPtimizer(IPopt optimizer
 This length of T is very crucial and is hyper parameter for the model.This T should be generally speaking gretter than setlling time of the system for model to predict well.As in every system has latency time to come to steady state after the controls  are being applied. So design of this T should be larger then setlling time but not large so that the computation time increase and you miss the prediction for new states and accuracy falls. Its a trade off and you will get a hang of it will tuning the system.
 
 At every T time step we measure our output and assess new state(x,y,psi,v,CTE,EPSI) so we geat a measure of direction of our prediction and we apply this new state to our model to generate new controls . So our measuremnts act like feedback to system.
-And keep T optimum ensure that system will not overshoot or get unstable.AS we predict for fixed time T,This is called receeding Horizon in model prediction control.
+And keep T optimum ensure that system will not overshoot or get unstable.AS we predict for fixed time T,This is called Receeding Horizon in model prediction control.
 
 We now need  Mathematical  Model which approximates the system.The model should have states, Constraints,  and control.
 The project use a simple bicycle model.
@@ -18,41 +18,88 @@ The project use a simple bicycle model.
      >// y_[t] = y[t-1] + v[t-1] * sin(psi[t-1]) * dt
      >// psi_[t] = psi[t-1] + v[t-1] / Lf * delta[t-1] * dt
      >// v_[t] = v[t-1] + a[t-1] * dt
+Where x,y is position. Psi is heading Direction. V is velocity.
      >// cte[t] = f(x[t-1]) - y[t-1] + v[t-1] * sin(epsi[t-1]) * dt
      >// epsi[t] = psi[t] - psides[t-1] + v[t-1] * delta[t-1] / Lf * dt
-     
-Where x,y is position. Psi is heading Direction. V is velocity. cte is cross track error which we need to minimize. FInally the epsi is error in heading direction.
+cte is cross track error which we need to minimize. Finally the epsi is error in heading direction which all need to be minimzed hence applied as input to the model.
+
+Model Predictive Control flow.
+To establish a better control, we need good prediction.
+Here we have IPopt oprimizer in our hand. The optimizer takes States, Sonstarints, Controls as input to the model.
+So when Simulator sends the currents postion X,Y and waypoints.
+These waypoints define a polynominal as the model is non linear . We use 3rd order eqaution to fit the waypoints.
+Polyfit and Polyeval function are used accordingly.
+
+>auto coeffs = polyfit(wp_x, wp_y, 3);
+>double cte = polyeval(coeffs, 0); // px = 0, py = 0
+
+These coefficents define the Polynomial.
+and further we call our MPC solver to find the optimized controld for current state and coeff.
+> auto vars = mpc.Solve(state, coeffs);
+
+To solve we use FG_eval class,
+Here we need to see how the vars,and constraints are defined to solve the equation.
+
+>// solve the problem
+>    CppAD::ipopt::solve<Dvector, FG_eval>(
+>           options, vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,
+>constraints_upperbound, fg_eval, solution);
+
+vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,constraints_upperbound,  are all Vectors here. and are Defined by N.
+Vars are states(6).
+Constarints on Vars ar lower and upper limit of datatype double.
+While controls have constarint like -25 to 25 for steering and -1 to 1 1 for acceleration.
+
+the Ipopt optimizer need the first parameter as the cost Function which needs to be optimized to find optimal Solution.
+So the weight of the Vars in cost function decide how much weightage the hold on tuning the controls in the solution.
+Weights and N the depth of vector are crucial in tuning the parameter.
+
+The solution returned has the contols Delta and Accelaration.
+
+How Did I tune My Hyperparameter.
+I started with the Quiz solution.
+Established basic communication.
+Then there was this transformation to rotate the car in X direction so psi is 0, x is 0 and y is 0 ... and effectively we need to optimize to one straight line . That was achieved.
+
+The hypermeters N and dt were choosen large enough initally like N = 20 and dt .2
+Weight were randomly high. Most weight was on CTE and Delta .
+
+So the problem with this was the car was always oscillation and off the track immediatley.
+
+Then I saw Latency requirement.
+Here the calculated solution was applied to simulator after 100 msec this was done to stimulate as if really the acc and delta is applied and car takes 100 msec to come to new states.
+
+There were two approaches here to solve this:
+1)Model the new position of car in 100msec and then transform point call the solver.
+I was not sure about this tried it but was not showing any affect on my model solution.
+
+2)Do not take solution points in delta and accuracy before the settling time.
+Settling time will be some delta time after latency time.
+So latency time is 100 msec and after that some time of dt I wait to find the optimal value of controls.
+
+  >result.push_back(solution.x[delta_start+latency_index]);
+  >result.push_back(solution.x[a_start+latency_index]);
+  
+Here latency_index I checked manualy one by one .I used latency_index of 7.
+When I use latency_index < 7 system ocillates.
+My N is 10 and dt is 0.05.
+so T is 0.5 sec the time frame for prediction.
+That means we predict for dist of only 0.5 sec ahead of us.
+And in that we have 10 prediction points.
+
+Also 7*0.05 = .35 we are using controls much within the frame and at 0.35 sec of time.
+Might be this much greater than latency of 100 but my simulator is in windows and application in VM so I think this delay is due to computational system delay.
+
+I have set refrence speed of 90mph, It passes the test even at 100.
+
+It was indeed beautiful journey Implemneting this project.
+I had no idea of WHat MPC was and only to write this document I saw so many journals I got more inisght in technicality of why we did so many things in MPC. 
+
+Thank you all for everything!!!
 
 
-I started with MPC quiz, There the mpc tuning graph and the quiz soultion was of great help.
-Lot of steps from quiz were taken into project.Only main.cpp was not there in quiz.
 
-Later on implemeted the project as per quiz directive.
-I was no where when the car recieved simulator commands.
-Forgot to mention about IPOPT was a big step in project setup.
 
-Later on added changes to position x,y as if the car is in X direction so predicted will be straight line along x axis.
-
-Once the code was ready started moving the weights on cost function.Initally the car was looping back so checked on forumns.
-Found that latency needs to be implemnetd.
-I added but my solution behaves same even without latency code.
-But changing this gives me a great start first time the loop back and oscillation have been removed.
-
->result.push_back(solution.x[delta_start+9]);
->result.push_back(solution.x[a_start+9]);
-Here I just dont take the first value for steer and accelration, I take somewhere in between the array .
-
-Then I go on changing weights looking at cte and delta.
-I put some values in denominator and to ensure NAN does not occur I added a holy constant 1.appl
-The denominator values are inverse in relation.
-
-This is still far from complete.
-But I need some inputs like,
-Is that latency implemenattion good?
-Is it necesscary? I dont see any chnages in My solution.
-Will the output behave differently on different hardware as my simultaor is on windows and 
-application on VM ubuntu.
-So please lend me some inputs to go about this solutiuon.
 ## Dependencies
 
 * cmake >= 3.5
