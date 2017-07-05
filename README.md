@@ -3,7 +3,7 @@ Self-Driving Car Engineer Nanodegree Program
 
 Let start with Model Predictive Control.
 Predictive control involves Prediction of controls for the next state based on current state.
-Here we predict for a fixed duration of time frame(T = N*dt) and take the output solution(control) and Apply to the systemto generate New state.
+Here we predict for a fixed duration of time frame(T = N*dt) and take the output solution(control) and Apply to the system to generate New state.
 The Prediction is mathematical solution provided by an OPtimizer(IPopt optimizer in our case).
 This length of T is very crucial and is hyper parameter for the model.This T should be generally speaking gretter than setlling time of the system for model to predict well.As in every system has latency time to come to steady state after the controls  are being applied. So design of this T should be larger then setlling time but not large so that the computation time increase and you miss the prediction for new states and accuracy falls. Its a trade off and you will get a hang of it will tuning the system.
 
