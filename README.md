@@ -1,8 +1,38 @@
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
 
----
+This project write up for Model Predictive is still under constuction.
+I will just write about steps which I used so far to arrive at this solution.
 
+I started with MPC quiz, There the mpc tuning graph and the quiz soultion was of great help.
+Lot of steps from quiz were taken into project.Only main.cpp was not there in quiz.
+
+Later on implemeted the project as per quiz directive.
+I was no where when the car recieved simulator commands.
+Forgot to mention about IPOPT was a big step in project setup.
+
+Later on added changes to position x,y as if the car is in X direction so predicted will be straight line along x axis.
+
+Once the code was ready started moving the weights on cost function.Initally the car was looping back so checked on forumns.
+Found that latency needs to be implemnetd.
+I added but my solution behaves same even without latency code.
+But changing this gives me a great start first time the loop back and oscillation have been removed.
+
+>result.push_back(solution.x[delta_start+9]);
+>result.push_back(solution.x[a_start+9]);
+Here I just dont take the first value for steer and accelration, I take somewhere in between the array .
+
+Then I go on changing weights looking at cte and delta.
+I put some values in denominator and to ensure NAN does not occur I added a holy constant 1.appl
+The denominator values are inverse in relation.
+
+This is still far from complete.
+But I need some inputs like,
+Is that latency implemenattion good?
+Is it necesscary? I dont see any chnages in My solution.
+Will the output behave differently on different hardware as my simultaor is on windows and 
+application on VM ubuntu.
+So please lend me some inputs to go about this solutiuon.
 ## Dependencies
 
 * cmake >= 3.5
