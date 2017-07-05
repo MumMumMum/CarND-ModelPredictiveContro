@@ -12,12 +12,12 @@ And keep T optimum ensure that system will not overshoot or get unstable.AS we p
 
 We now need  Mathematical  Model which approximates the system.The model should have states, Constraints,  and control.
 The project use a simple bicycle model.
-     >>> // x_[t] = x[t-1] + v[t-1] * cos(psi[t-1]) * dt
-     > // y_[t] = y[t-1] + v[t-1] * sin(psi[t-1]) * dt
-     > // psi_[t] = psi[t-1] + v[t-1] / Lf * delta[t-1] * dt
-     > // v_[t] = v[t-1] + a[t-1] * dt
-     > // cte[t] = f(x[t-1]) - y[t-1] + v[t-1] * sin(epsi[t-1]) * dt
-     > // epsi[t] = psi[t] - psides[t-1] + v[t-1] * delta[t-1] / Lf * dt
+     >// x_[t] = x[t-1] + v[t-1] * cos(psi[t-1]) * dt
+     >// y_[t] = y[t-1] + v[t-1] * sin(psi[t-1]) * dt
+     >// psi_[t] = psi[t-1] + v[t-1] / Lf * delta[t-1] * dt
+     >// v_[t] = v[t-1] + a[t-1] * dt
+     >// cte[t] = f(x[t-1]) - y[t-1] + v[t-1] * sin(epsi[t-1]) * dt
+     >// epsi[t] = psi[t] - psides[t-1] + v[t-1] * delta[t-1] / Lf * dt
 
 I started with MPC quiz, There the mpc tuning graph and the quiz soultion was of great help.
 Lot of steps from quiz were taken into project.Only main.cpp was not there in quiz.
