@@ -7,13 +7,17 @@ Here we predict for a fixed duration of time frame(T = N*dt) and take the output
 The Prediction is mathematical solution provided by an OPtimizer(IPopt optimizer in our case).
 This length of T is very crucial and is hyper parameter for the model.This T should be generally speaking gretter than setlling time of the system for model to predict well.As in every system has latency time to come to steady state after the controls  are being applied. So design of this T should be larger then setlling time but not large so that the computation time increase and you miss the prediction for new states and accuracy falls. Its a trade off and you will get a hang of it will tuning the system.
 
-
 At every T time step we measure our output and assess new state(x,y,psi,v,CTE,EPSI) so we geat a measure of direction of our prediction and we apply this new state to our model to generate new controls . So our measuremnts act like feedback to system.
-And keep T optimum ensure that system will not overshoot or get unstable.
+And keep T optimum ensure that system will not overshoot or get unstable.AS we predict for fixed time T,This is called receeding Horizon in model prediction control.
 
-We need  Mathematical  Model whichapproximates the system.The model should have states, Constraints,  and control.
-Then from this New state once again predict for next fixed frame of time. This is called receeding Horizon 
-in model prediction control.
+We now need  Mathematical  Model which approximates the system.The model should have states, Constraints,  and control.
+The project use a simple bicycle model.
+     > // x_[t] = x[t-1] + v[t-1] * cos(psi[t-1]) * dt
+     > // y_[t] = y[t-1] + v[t-1] * sin(psi[t-1]) * dt
+     > // psi_[t] = psi[t-1] + v[t-1] / Lf * delta[t-1] * dt
+     > // v_[t] = v[t-1] + a[t-1] * dt
+     > // cte[t] = f(x[t-1]) - y[t-1] + v[t-1] * sin(epsi[t-1]) * dt
+     > // epsi[t] = psi[t] - psides[t-1] + v[t-1] * delta[t-1] / Lf * dt
 
 I started with MPC quiz, There the mpc tuning graph and the quiz soultion was of great help.
 Lot of steps from quiz were taken into project.Only main.cpp was not there in quiz.
