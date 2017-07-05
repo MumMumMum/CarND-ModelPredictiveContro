@@ -12,7 +12,7 @@ And keep T optimum ensure that system will not overshoot or get unstable.AS we p
 
 We now need  Mathematical  Model which approximates the system.The model should have states, Constraints,  and control.
 The project use a simple bicycle model.
-     > // x_[t] = x[t-1] + v[t-1] * cos(psi[t-1]) * dt
+     >>> // x_[t] = x[t-1] + v[t-1] * cos(psi[t-1]) * dt
      > // y_[t] = y[t-1] + v[t-1] * sin(psi[t-1]) * dt
      > // psi_[t] = psi[t-1] + v[t-1] / Lf * delta[t-1] * dt
      > // v_[t] = v[t-1] + a[t-1] * dt
