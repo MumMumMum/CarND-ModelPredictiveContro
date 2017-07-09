@@ -72,6 +72,7 @@ int main() {
 
     // MPC is initialized here!
     MPC mpc;
+    //mpc.prev_aacc = 1;
 
     h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                        uWS::OpCode opCode) {
@@ -80,6 +81,8 @@ int main() {
         // The 2 signifies a websocket event
         string sdata = string(data).substr(0, length);
         cout << sdata << endl;
+	//cout<<"prev accc :"<<mpc.prev_aacc<<" prev delata " <<mpc.delta_prev<<endl;
+
         if (sdata.size() > 2 && sdata[0] == '4' && sdata[1] == '2') {
             string s = hasData(sdata);
             if (s != "") {
@@ -94,17 +97,11 @@ int main() {
                     double psi = j[1]["psi"];
                     double v = j[1]["speed"];
 		    double delta = j[1]["steering_angle"];
+		    delta = delta*-1;
 		    double acceleration = j[1]["throttle"];
 
 
-		    const double Lf = 2.67;
-		    // predict state in 100ms
-		    /*double latency = 0.1; 
-		    x = x + v*cos(psi)*latency;
-		    y = y + v*sin(psi)*latency;
-		    psi = psi + v*delta/Lf*latency;
-		    v = v + acceleration*latency;*/
-
+		    
                     /*
                     * TODO: Calculate steering angle and throttle using MPC.
                     *
@@ -123,25 +120,41 @@ int main() {
                         waypts_x.push_back(dx * cos(-psi) - dy * sin(-psi));
                         waypts_y.push_back(dx * sin(-psi) + dy * cos(-psi));
                     }
+                    const double Lf = 2.67;
+		   
 
                     double *ptrx = &waypts_x[0];
                     double *ptry = &waypts_y[0];
                     Eigen::Map<Eigen::VectorXd> wp_x(ptrx, 6);
                     Eigen::Map<Eigen::VectorXd> wp_y(ptry, 6);
-
                     auto coeffs = polyfit(wp_x, wp_y, 3);
-                    double cte = polyeval(coeffs, 0);  // px = 0, py = 0
-                    double epsi = -atan(coeffs[1]); // p
+                    //double epsi = -atan(coeffs[1]); // p
                     Eigen::VectorXd state(6);
-                    state << 0, 0, 0, v, cte, epsi;
-		    cout<<"Cte:"<<cte<<" v : "<<v<<"epsi  :"<< epsi<< endl;
+                    //state << 0, 0, 0, v, cte, epsi;
+		    //cout<<"before transform Cte:"<<cte<<" v : "<<v<<"epsi  :"<< epsi<< endl;
+		    // Solve latency of 100ms,
+	            
+		    double latency = 0.1; 
+		    double pred_x = 0 + v*cos(0)*latency;
+		    double pred_y = 0 + v*sin(0)*latency;
+		    double pred_psi = 0 + v*delta/Lf*latency;
+		    double pred_v = v ;//Const vel over 100ms ;//+ mpc.prev_aacc*latency;
+		    double pred_cte  = polyeval(coeffs, pred_x);  // px = 0, py = 0
+		    //double pred_cte = cte - v * sin(0) * latency;
+		    //double pred_cte = cte + v * sin(psi) * latency;
+                    //double pred_epsi = epsi; //+pred_psi ;
+                    double pred_epsi = pred_psi - atan(coeffs[1] +2 * coeffs[2] * pred_x +3 * coeffs[3] *pred_x * pred_x);
+		    
+          
+          
+                    state << pred_x, pred_y, pred_psi, pred_v, pred_cte, pred_epsi;
+		    cout<<"After Latency Cte:"<<pred_cte<<" v : "<<pred_v<<" epsi  :"<< pred_epsi<< endl;
+
                     auto vars = mpc.Solve(state, coeffs);
 
                     double steer_value = vars[0];
                     double throttle_value = vars[1];
-
-
-                    //Display the MPC predicted trajectory
+		    //Display the MPC predicted trajectory
                     vector<double> mpc_x_vals;
                     vector<double> mpc_y_vals;
                     //Display the waypoints/reference line
@@ -154,8 +167,11 @@ int main() {
                     // Otherwise the values will be in between [-deg2rad(25), deg2rad(25] instead of [-1, 1].
                     msgJson["steering_angle"] = (steer_value / (deg2rad(25)));
                     msgJson["throttle"] = throttle_value;
+                    //mpc.prev_aacc = throttle_value;
+                    //mpc.delta_prev = (steer_value / (deg2rad(25)));
 
 
+		    //cout<<"Steer angle: "<<-(steer_value / (deg2rad(25)))<<"throttle : "<< throttle_value<<endl;
                     //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
                     // the points in the simulator are connected by a Green line
 
@@ -204,6 +220,7 @@ int main() {
                     // SUBMITTING.
                     this_thread::sleep_for(chrono::milliseconds(100));
                     ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+                    cout <<"=================================================================="<<endl;
                 }
             } else {
                 // Manual driving

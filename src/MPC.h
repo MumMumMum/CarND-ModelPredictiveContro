@@ -8,6 +8,8 @@ using namespace std;
 
 class MPC {
  public:
+ //double prev_aacc;
+ //double delta_prev;
   MPC();
 
   virtual ~MPC();
